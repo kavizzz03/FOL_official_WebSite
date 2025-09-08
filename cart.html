@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your Cart - FOL Clothing</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+body { background-color: #d4edda; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+.cart-item { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.cart-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+.cart-item-info { flex-grow: 1; margin-left: 15px; }
+.quantity-input { width: 60px; text-align: center; }
+.remove-btn { color: red; cursor: pointer; font-size: 16px; align-self: center; border: none; background: none; }
+.total-price { font-size: 1.5rem; font-weight: bold; }
+.checkout-btn { font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div id="header"></div>
+
+<!-- Cart Items -->
+<div class="container mt-5">
+  <h3 class="text-center mb-4">Your Cart</h3>
+  <div id="cart-items"></div>
+  <div class="text-end">
+    <p class="total-price" id="total-price">Total: Rs 0.00</p>
+    <button class="btn btn-success checkout-btn" id="checkoutBtn">Order Now</button>
+  </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderModalLabel">Order Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="fw-bold">Total Amount: <span id="orderTotal"></span></p>
+
+        <!-- Checkout Form -->
+        <div class="mb-3">
+          <label>Email Address:</label>
+          <input type="email" class="form-control" id="email" required placeholder="Enter your email">
+        </div>
+        <div class="mb-3">
+          <label>Contact Number:</label>
+          <input type="text" class="form-control" id="contact" required placeholder="Enter your phone number">
+        </div>
+        <div class="mb-3">
+          <label>Home Address:</label>
+          <textarea class="form-control" id="address" required placeholder="Enter your address"></textarea>
+        </div>
+        <div class="mb-3">
+          <label>Postal Code:</label>
+          <input type="text" class="form-control" id="postalCode" required placeholder="Enter postal code">
+        </div>
+        <div class="mb-3">
+          <label>Province:</label>
+          <select class="form-select" id="province" required>
+            <option value="">Select Province</option>
+            <option>Western</option>
+            <option>Central</option>
+            <option>Southern</option>
+            <option>Uva</option>
+            <option>Sabaragamuwa</option>
+            <option>North Western</option>
+            <option>North Central</option>
+            <option>Northern</option>
+            <option>Eastern</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label>District:</label>
+          <select class="form-select" id="district" required></select>
+        </div>
+        <div class="mb-3">
+          <label>Payment Method:</label>
+          <select class="form-select" id="payment" required>
+            <option value="">Select Payment Method</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+            <option value="Bank Deposit">Bank Deposit</option>
+          </select>
+        </div>
+
+        <!-- Bank Deposit Details -->
+        <div id="bank-details" style="display: none;">
+          <h5>Bank Deposit Information</h5>
+          <p><strong>Bank Name:</strong> Example Bank</p>
+          <p><strong>Account Number:</strong> 123456789</p>
+          <p><strong>Account Holder Name:</strong> FOL Clothing</p>
+          <p><strong>Branch:</strong> Main Branch</p>
+          <p><strong>Note:</strong> Please transfer the total amount to the account and upload the bank slip below.</p>
+          <div class="mb-3">
+            <label>Upload Bank Slip:</label>
+            <input type="file" class="form-control" id="bankSlip" required>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="confirmOrderBtn">Confirm Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+        AOS.init({ duration:1000, once:true, easing:'ease-in-out' });
+
+    // Load header & footer
+    fetch("header.html").then(res=>res.text()).then(data=>{document.getElementById("header").innerHTML=data});
+    fetch("footer.html").then(res=>res.text()).then(data=>{document.getElementById("footer").innerHTML=data});
+
+</script>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ---------------- Helper Functions ----------------
+
+// Get cart safely
+function getCart() {
+  try {
+    return JSON.parse(localStorage.getItem('cart')) || [];
+  } catch (e) {
+    console.error("Cart parse error:", e);
+    return [];
+  }
+}
+
+// Save cart
+function saveCart(cart) {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+// ---------------- Cart Functions ----------------
+
+// Render cart
+function updateCart(){
+  const cart = getCart();
+  const container = document.getElementById('cart-items');
+  const totalEl = document.getElementById('total-price');
+  container.innerHTML = '';
+  let total = 0;
+
+  if(cart.length === 0){
+    container.innerHTML = '<p class="text-center">Your cart is empty.</p>';
+    totalEl.innerText = "Total: Rs 0.00";
+    return;
+  }
+
+  cart.forEach((item, idx)=>{
+    const qty = item.quantity || 1;
+    total += item.price * qty;
+
+    const el = document.createElement('div');
+    el.className = 'cart-item';
+    el.innerHTML = `
+      <img src="${item.image}" alt="${item.name}">
+      <div class="cart-item-info">
+        <p><strong>${item.name}</strong></p>
+        <p>Color: ${item.color}</p>
+        <p>Size: ${item.size}</p>
+        <p>Price: Rs ${Number(item.price).toFixed(2)}</p>
+        <label>Quantity:</label>
+        <input type="number" class="quantity-input" value="${qty}" min="1"
+          onchange="updateQuantity(${idx},this.value)">
+      </div>
+      <button class="remove-btn" onclick="removeFromCart(${idx})">Remove</button>
+    `;
+    container.appendChild(el);
+  });
+
+  totalEl.innerText = `Total: Rs ${total.toFixed(2)}`;
+}
+
+function updateQuantity(idx, qty){
+  const cart = getCart();
+  cart[idx].quantity = parseInt(qty);
+  saveCart(cart);
+  updateCart();
+}
+
+function removeFromCart(idx){
+  const cart = getCart();
+  cart.splice(idx,1);
+  saveCart(cart);
+  updateCart();
+}
+
+// Example: add product to cart (you can call this from product page)
+function addToCart(item){
+  const cart = getCart();
+  cart.push(item);
+  saveCart(cart);
+  updateCart(); 
+}
+
+// ---------------- Province/District ----------------
+
+const districtsByProvince = {
+  "Western":["Colombo","Gampaha","Kalutara"],
+  "Central":["Kandy","Matale","Nuwara Eliya"],
+  "Southern":["Galle","Matara","Hambantota"],
+  "Uva":["Badulla","Monaragala"],
+  "Sabaragamuwa":["Ratnapura","Kegalle"],
+  "North Western":["Kurunegala","Puttalam"],
+  "North Central":["Anuradhapura","Polonnaruwa"],
+  "Northern":["Jaffna","Kilinochchi","Mannar","Mullaitivu","Vavuniya"],
+  "Eastern":["Batticaloa","Ampara","Trincomalee"]
+};
+
+document.getElementById('province').addEventListener('change',function(){
+  const province=this.value;
+  const districtSelect=document.getElementById('district');
+  districtSelect.innerHTML='<option value="">Select District</option>';
+  if(districtsByProvince[province]){
+    districtsByProvince[province].forEach(d=>{
+      const o=document.createElement('option');
+      o.value=d;o.textContent=d;
+      districtSelect.appendChild(o);
+    });
+  }
+});
+// CHECKOUT MODAL
+document.getElementById('checkoutBtn').addEventListener('click',()=>{
+  const cart=JSON.parse(localStorage.getItem('cart'))||[];
+  if(cart.length===0){ alert('Your cart is empty!'); return; }
+  const total=cart.reduce((s,i)=>s+i.price*(i.quantity||1),0);
+  document.getElementById('orderTotal').innerText=`Rs ${total.toFixed(2)}`;
+  new bootstrap.Modal(document.getElementById('orderModal')).show();
+});
+
+// PAYMENT
+document.getElementById('payment').addEventListener('change',function(){
+  const bank=document.getElementById('bank-details');
+  bank.style.display=this.value==="Bank Deposit"?'block':'none';
+  if(this.value==="Bank Deposit") document.getElementById('bankSlip').required=true;
+  else document.getElementById('bankSlip').required=false;
+});
+
+// AUTO-FILL EMAIL
+document.getElementById('email').addEventListener('blur',function(){
+  const email=this.value.trim();
+  if(email==='') return;
+  fetch('get_user.php',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email})
+  }).then(r=>r.json())
+  .then(data=>{
+    if(data.success){
+      const u=data.user;
+      document.getElementById('contact').value=u.phone||'';
+      document.getElementById('address').value=u.address||'';
+      document.getElementById('postalCode').value=u.postal||'';
+      document.getElementById('province').value=u.province||'';
+      const districtSelect=document.getElementById('district');
+      districtSelect.innerHTML='<option value="">Select District</option>';
+      if(u.province && districtsByProvince[u.province]){
+        districtsByProvince[u.province].forEach(d=>{
+          const o=document.createElement('option');
+          o.value=d;o.textContent=d;
+          if(d===u.district) o.selected=true;
+          districtSelect.appendChild(o);
+        });
+      }
+    } else {
+      // Clear form if not found
+      document.getElementById('contact').value='';
+      document.getElementById('address').value='';
+      document.getElementById('postalCode').value='';
+      document.getElementById('province').value='';
+      document.getElementById('district').innerHTML='<option value="">Select District</option>';
+    }
+  }).catch(e=>console.error('Error:',e));
+});
+
+// SUBMIT ORDER WITH SWEETALERT
+document.getElementById('confirmOrderBtn').addEventListener('click',()=>{
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "Do you want to confirm this order?",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Confirm!',
+    cancelButtonText: 'Cancel'
+  }).then((result)=>{
+    if(result.isConfirmed){
+      submitOrder();
+    }
+  });
+});
+
+function submitOrder(){
+  const cart=JSON.parse(localStorage.getItem('cart'))||[];
+  if(cart.length===0){ alert('Cart is empty'); return; }
+  const email=document.getElementById('email').value.trim();
+  const contact=document.getElementById('contact').value.trim();
+  const address=document.getElementById('address').value.trim();
+  const postal=document.getElementById('postalCode').value.trim();
+  const province=document.getElementById('province').value;
+  const district=document.getElementById('district').value;
+  const payment=document.getElementById('payment').value;
+  const bankSlip=document.getElementById('bankSlip')?.files[0] || null;
+
+  if(!email||!contact||!address||!postal||!province||!district||!payment){
+    Swal.fire('Error','Please fill all required fields!','error'); return;
+  }
+  if(payment==="Bank Deposit" && !bankSlip){ Swal.fire('Error','Please upload bank slip!','error'); return; }
+
+  const formData=new FormData();
+  formData.append('items',JSON.stringify(cart));
+  formData.append('email',email);
+  formData.append('contact',contact);
+  formData.append('address',address);
+  formData.append('postalCode',postal);
+  formData.append('province',province);
+  formData.append('district',district);
+  formData.append('payment',payment);
+  if(bankSlip) formData.append('bankSlip',bankSlip);
+
+  fetch('save_order.php',{
+    method:'POST',
+    body:formData
+  }).then(r=>r.json())
+  .then(res=>{
+    if(res.success){
+      Swal.fire('Success',`Order placed! Order ID: ${res.order_id}`,'success').then(()=>{
+        localStorage.removeItem('cart');
+        window.location.href='index.html';
+      });
+    } else { Swal.fire('Error',res.error,'error'); }
+  }).catch(e=>Swal.fire('Error',e,'error'));
+}
+
+window.onload=updateCart;
+</script>
+</body>
+</html>
