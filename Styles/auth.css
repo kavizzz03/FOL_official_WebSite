@@ -1,0 +1,133 @@
+/* -------------------- Auth Page -------------------- */
+.auth-section {
+  gap: 20px;
+  padding: 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(145deg, #ffffff, #f0f5f9);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 30px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(22,163,74,0.2);
+}
+
+.auth-card h3 {
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.auth-card input.form-control {
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.auth-card button {
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.auth-card button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(22,163,74,0.4);
+}
+
+/* OTP Section */
+#otpSection input {
+  border-radius: 12px;
+  padding: 12px;
+}
+
+#otpSection button {
+  margin-top: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-section {
+    flex-direction: column;
+    align-items: center;
+  }
+  .auth-card {
+    width: 90%;
+  }
+}
+/* Footer Styles */
+.site-footer {
+  background: #111;               /* Dark background */
+  color: #ddd;                    /* Light text */
+  padding: 50px 0 30px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.site-footer .brand-title {
+  color: #28a745;                 /* Green brand */
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+}
+
+.site-footer .about-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.site-footer .footer-heading {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.site-footer .footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.site-footer .footer-links li {
+  margin-bottom: 8px;
+}
+
+.site-footer .footer-links a {
+  color: #bbb;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.site-footer .footer-links a:hover {
+  color: #28a745;                 /* Hover green */
+}
+
+.site-footer .social-links a {
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 1.3rem;
+  color: #bbb;
+  transition: color 0.3s, transform 0.2s;
+}
+
+.site-footer .social-links a:hover {
+  color: #28a745;
+  transform: scale(1.2);
+}
+
+.site-footer hr {
+  border-color: rgba(255, 255, 255, 0.1);
+  margin: 20px 0;
+}
+
+.site-footer .copyright {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
